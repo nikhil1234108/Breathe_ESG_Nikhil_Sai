@@ -1,0 +1,18 @@
+Meter_ID,Billing_Period,kWh_Consumption,Tariff,Peak_Demand_kW
+MTR-HQ-01,2026-01-01 to 2026-01-31,22000.0,Commercial-Standard,42.0
+MTR-HQ-01,2026-02-01 to 2026-02-28,21500.5,Commercial-Standard,41.2
+MTR-HQ-01,2026-03-01 to 2026-03-31,24500.8,Commercial-Standard,45.2
+MTR-HQ-01,2026-04-01 to 2026-04-30,27800.5,Commercial-Standard,48.0
+MTR-HQ-01,2026-05-01 to 2026-05-31,25300.2,Commercial-Standard,46.5
+MTR-HQ-01,2026-06-01 to 2026-06-30,26800.0,Commercial-Standard,47.8
+MTR-PLANT-02,2026-01-01 to 2026-01-31,880000.0,Industrial-HighDemand,160.0
+MTR-PLANT-02,2026-02-01 to 2026-02-28,820000.0,Industrial-HighDemand,155.0
+MTR-PLANT-02,2026-03-01 to 2026-03-31,950000.0,Industrial-HighDemand,175.0
+MTR-HQ-01,2026-04-15 to 2026-05-15,15000.0,Commercial-Standard,35.0
+MTR-PLANT-02,2026-04-01 to 2026-04-30,1200000.0,Industrial-HighDemand,180.0
+MTR-HQ-01,2026-07-01 to 2026-07-31,-120.0,Commercial-Standard,10.0
+MTR-HQ-01,2026-08-01 to 2026-08-31,,Commercial-Standard,0.0
+MTR-HQ-01,2026-09-01 to 2026-09-01,150.0,Commercial-Standard,5.0
+MTR-HQ-01,2026-10-31 to 2026-10-01,22000.0,Commercial-Standard,42.0
+MTR-HQ-01,2026-11-01 to 2026-11-30,22000.0,Commercial-Standard,42.0
+MTR-HQ-01,2026-11-01 to 2026-11-30,22000.0,Commercial-Standard,42.0

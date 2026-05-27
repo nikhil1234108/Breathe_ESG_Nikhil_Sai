@@ -1,0 +1,23 @@
+Werk;Material;Menge;Einheit;Buchungsdatum;Kostenstelle;Lieferant
+1010;Diesel Kraftstoff;1200,50;L;15.01.2026;CC-LOG-01;Aral AG
+1010;Heizöl;5,00;TO;18.01.2026;CC-FAC-01;Shell Deutschland
+1020;Diesel Kraftstoff;850,00;L;20.01.2026;CC-LOG-02;Aral AG
+1010;Benzin;400,00;L;25.01.2026;CC-LOG-01;TotalEnergies
+1010;Diesel Kraftstoff;1400,00;L;15.04.2026;CC-LOG-01;Aral AG
+1010;Heizöl;4,50;TO;18.04.2026;CC-FAC-01;Shell Deutschland
+1020;Diesel Kraftstoff;25000,00;L;20.04.2026;CC-LOG-02;Aral AG
+1010;Benzin;350,00;L;25.04.2026;CC-LOG-01;TotalEnergies
+1010;Diesel Kraftstoff;1150,00;L;15.07.2026;CC-LOG-01;Aral AG
+1010;Heizöl;6,20;TO;18.07.2026;CC-FAC-01;Shell Deutschland
+1020;Diesel Kraftstoff;900,00;L;20.07.2026;CC-LOG-02;Aral AG
+1010;Benzin;480,00;L;25.07.2026;CC-LOG-01;TotalEnergies
+1010;Diesel Kraftstoff;1350,00;L;15.10.2026;CC-LOG-01;Aral AG
+1010;Heizöl;5,80;TO;18.10.2026;CC-FAC-01;Shell Deutschland
+1020;Diesel Kraftstoff;920,00;L;20.10.2026;CC-LOG-02;Aral AG
+1010;Benzin;410,00;L;25.10.2026;CC-LOG-01;TotalEnergies
+1020;Diesel Kraftstoff;25000,00;L;20.04.2026;CC-LOG-02;Aral AG
+1010;Diesel Kraftstoff;-200,00;L;26.04.2026;CC-LOG-01;Aral AG
+1020;Diesel Kraftstoff;500,00;L;INVALID_DATE;CC-LOG-02;Aral AG
+1010;Diesel Kraftstoff;75000,00;L;28.04.2026;CC-LOG-01;Shell Deutschland
+1010;Diesel Kraftstoff;;L;29.04.2026;CC-LOG-01;Shell Deutschland
+1010;Diesel Kraftstoff;150,00;BAGS;30.04.2026;CC-LOG-01;TotalEnergies
