@@ -95,27 +95,55 @@ DATABASES = {
 }
 
 # PostgreSQL with SQLite Fallback Logic
-DB_NAME = os.environ.get('DB_NAME', 'breathe_esg')
-DB_USER = os.environ.get('DB_USER', 'postgres')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', '5432')
+from urllib.parse import urlparse, parse_qs
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+ssl_mode = None
+
+if DATABASE_URL:
+    try:
+        parsed = urlparse(DATABASE_URL)
+        DB_NAME = parsed.path.lstrip('/')
+        DB_USER = parsed.username or ''
+        DB_PASSWORD = parsed.password or ''
+        DB_HOST = parsed.hostname or 'localhost'
+        DB_PORT = str(parsed.port) if parsed.port else '5432'
+        
+        # Parse query options like sslmode
+        parsed_query = parse_qs(parsed.query)
+        ssl_mode = parsed_query.get('sslmode', [None])[0]
+    except Exception as e:
+        print(f"Error parsing DATABASE_URL: {e}")
+        DB_NAME = os.environ.get('DB_NAME', 'breathe_esg')
+        DB_USER = os.environ.get('DB_USER', 'postgres')
+        DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
+        DB_HOST = os.environ.get('DB_HOST', 'localhost')
+        DB_PORT = os.environ.get('DB_PORT', '5432')
+else:
+    DB_NAME = os.environ.get('DB_NAME', 'breathe_esg')
+    DB_USER = os.environ.get('DB_USER', 'postgres')
+    DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '5432')
 
 # Skip PG checks if running tests on sqlite or if sqlite is forced
 if 'test' not in sys.argv and os.environ.get('USE_SQLITE', 'False').lower() != 'true':
     try:
         import psycopg2
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            host=DB_HOST,
-            port=DB_PORT,
-            connect_timeout=2
-        )
+        if DATABASE_URL:
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=2)
+        else:
+            conn = psycopg2.connect(
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASSWORD,
+                host=DB_HOST,
+                port=DB_PORT,
+                connect_timeout=2
+            )
         conn.close()
         
-        DATABASES['default'] = {
+        db_config = {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': DB_NAME,
             'USER': DB_USER,
@@ -123,6 +151,10 @@ if 'test' not in sys.argv and os.environ.get('USE_SQLITE', 'False').lower() != '
             'HOST': DB_HOST,
             'PORT': DB_PORT,
         }
+        if ssl_mode:
+            db_config['OPTIONS'] = {'sslmode': ssl_mode}
+            
+        DATABASES['default'] = db_config
         print("Connected to PostgreSQL successfully.")
     except Exception as e:
         print(f"PostgreSQL connection failed ({e}). Falling back to local SQLite.")

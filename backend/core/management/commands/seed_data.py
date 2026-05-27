@@ -172,130 +172,134 @@ class Command(BaseCommand):
         self.stdout.write(f"Created sample Utility file at: {utility_file}")
 
         # 7. Automatically Ingest Seeding Data into Database for Test Validation
-        self.stdout.write("Automatically ingesting generated sample files and travel API data...")
-        
-        sap_source = DataSource.objects.get(company=company, source_type="sap_fuel")
-        with open(sap_file, "rb") as f:
-            ingest_csv_file(
-                company=company,
-                data_source=sap_source,
-                file_file=f,
-                filename="sap_procurement_germany.csv",
-                uploaded_by=None
-            )
-        self.stdout.write("Ingested SAP CSV data.")
-
-        utility_source = DataSource.objects.get(company=company, source_type="utility_electricity")
-        with open(utility_file, "rb") as f:
-            ingest_csv_file(
-                company=company,
-                data_source=utility_source,
-                file_file=f,
-                filename="utility_electricity_bills.csv",
-                uploaded_by=None
-            )
-        self.stdout.write("Ingested Utility CSV data.")
-
-        # Synced Corporate Travel API data
-        try:
-            travel_source = DataSource.objects.get(company=company, source_type="corporate_travel")
-            user = User.objects.get(username="analyst")
-            sync_travel_api(
-                company=company,
-                data_source=travel_source,
-                uploaded_by=user,
-                sync_url="http://localhost:8000/api/external/travel-data/"
-            )
-            self.stdout.write("Synced Corporate Travel API data via HTTP GET.")
-        except Exception as e:
-            self.stdout.write(f"Corporate Travel HTTP sync failed ({e}). Falling back to manual record loading...")
-            from core.services.normalization import normalize_raw_record
-            from core.models import RawRecord, RawUpload
-            user = User.objects.get(username="analyst")
-            travel_source = DataSource.objects.get(company=company, source_type="corporate_travel")
-            raw_upload = RawUpload.objects.create(
-                company=company,
-                data_source=travel_source,
-                upload_type='api',
-                filename='Sync API Concur',
-                status='processing',
-                uploaded_by=user
-            )
-            mock_data = [
-                {
-                    "travel_id": "TRV-2026-001",
-                    "employee_id": "EMP-384",
-                    "trip_type": "flight",
-                    "transaction_date": "10.04.2026",
-                    "origin_airport": "LHR",
-                    "destination_airport": "JFK",
-                    "travel_class": "Economy",
-                    "distance_km": None
-                },
-                {
-                    "travel_id": "TRV-2026-002",
-                    "employee_id": "EMP-092",
-                    "trip_type": "flight",
-                    "transaction_date": "12.04.2026",
-                    "origin_airport": "MUC",
-                    "destination_airport": "LHR",
-                    "travel_class": "Business",
-                    "distance_km": 941.5
-                },
-                {
-                    "travel_id": "TRV-2026-003",
-                    "employee_id": "EMP-092",
-                    "trip_type": "hotel",
-                    "transaction_date": "15.04.2026",
-                    "nights": 4,
-                    "hotel_country": "United Kingdom"
-                },
-                {
-                    "travel_id": "TRV-2026-004",
-                    "employee_id": "EMP-384",
-                    "trip_type": "ground",
-                    "transaction_date": "11.04.2026",
-                    "distance_km": 24.8,
-                    "ground_type": "taxi"
-                },
-                {
-                    "travel_id": "TRV-2026-005",
-                    "employee_id": "EMP-111",
-                    "trip_type": "flight",
-                    "transaction_date": "18.04.2026",
-                    "origin_airport": "JFK",
-                    "destination_airport": "SIN",
-                    "travel_class": "First",
-                    "distance_km": 25000.0
-                },
-                {
-                    "travel_id": "TRV-2026-006",
-                    "employee_id": "EMP-222",
-                    "trip_type": "hotel",
-                    "transaction_date": "20.04.2026",
-                    "nights": -2,
-                    "hotel_country": "Germany"
-                },
-                {
-                    "travel_id": "TRV-2026-007",
-                    "employee_id": "EMP-333",
-                    "trip_type": "flight",
-                    "transaction_date": "22.04.2026",
-                    "origin_airport": "FRA",
-                    "destination_airport": "MUC",
-                    "travel_class": "Economy",
-                    "distance_km": 15.0
-                }
-            ]
-            for idx, item in enumerate(mock_data):
-                raw_rec = RawRecord.objects.create(
-                    raw_upload=raw_upload,
-                    row_index=idx + 1,
-                    raw_data=item
+        from core.models import RawUpload
+        if not RawUpload.objects.filter(company=company).exists():
+            self.stdout.write("Automatically ingesting generated sample files and travel API data...")
+            
+            sap_source = DataSource.objects.get(company=company, source_type="sap_fuel")
+            with open(sap_file, "rb") as f:
+                ingest_csv_file(
+                    company=company,
+                    data_source=sap_source,
+                    file_file=f,
+                    filename="sap_procurement_germany.csv",
+                    uploaded_by=None
                 )
-                normalize_raw_record(raw_rec)
-            raw_upload.status = 'completed'
-            raw_upload.save()
-            self.stdout.write("Successfully ingested Corporate Travel data manually.")
+            self.stdout.write("Ingested SAP CSV data.")
+
+            utility_source = DataSource.objects.get(company=company, source_type="utility_electricity")
+            with open(utility_file, "rb") as f:
+                ingest_csv_file(
+                    company=company,
+                    data_source=utility_source,
+                    file_file=f,
+                    filename="utility_electricity_bills.csv",
+                    uploaded_by=None
+                )
+            self.stdout.write("Ingested Utility CSV data.")
+
+            # Synced Corporate Travel API data
+            try:
+                travel_source = DataSource.objects.get(company=company, source_type="corporate_travel")
+                user = User.objects.get(username="analyst")
+                sync_travel_api(
+                    company=company,
+                    data_source=travel_source,
+                    uploaded_by=user,
+                    sync_url="http://localhost:8000/api/external/travel-data/"
+                )
+                self.stdout.write("Synced Corporate Travel API data via HTTP GET.")
+            except Exception as e:
+                self.stdout.write(f"Corporate Travel HTTP sync failed ({e}). Falling back to manual record loading...")
+                from core.services.normalization import normalize_raw_record
+                from core.models import RawRecord
+                user = User.objects.get(username="analyst")
+                travel_source = DataSource.objects.get(company=company, source_type="corporate_travel")
+                raw_upload = RawUpload.objects.create(
+                    company=company,
+                    data_source=travel_source,
+                    upload_type='api',
+                    filename='Sync API Concur',
+                    status='processing',
+                    uploaded_by=user
+                )
+                mock_data = [
+                    {
+                        "travel_id": "TRV-2026-001",
+                        "employee_id": "EMP-384",
+                        "trip_type": "flight",
+                        "transaction_date": "10.04.2026",
+                        "origin_airport": "LHR",
+                        "destination_airport": "JFK",
+                        "travel_class": "Economy",
+                        "distance_km": None
+                    },
+                    {
+                        "travel_id": "TRV-2026-002",
+                        "employee_id": "EMP-092",
+                        "trip_type": "flight",
+                        "transaction_date": "12.04.2026",
+                        "origin_airport": "MUC",
+                        "destination_airport": "LHR",
+                        "travel_class": "Business",
+                        "distance_km": 941.5
+                    },
+                    {
+                        "travel_id": "TRV-2026-003",
+                        "employee_id": "EMP-092",
+                        "trip_type": "hotel",
+                        "transaction_date": "15.04.2026",
+                        "nights": 4,
+                        "hotel_country": "United Kingdom"
+                    },
+                    {
+                        "travel_id": "TRV-2026-004",
+                        "employee_id": "EMP-384",
+                        "trip_type": "ground",
+                        "transaction_date": "11.04.2026",
+                        "distance_km": 24.8,
+                        "ground_type": "taxi"
+                    },
+                    {
+                        "travel_id": "TRV-2026-005",
+                        "employee_id": "EMP-111",
+                        "trip_type": "flight",
+                        "transaction_date": "18.04.2026",
+                        "origin_airport": "JFK",
+                        "destination_airport": "SIN",
+                        "travel_class": "First",
+                        "distance_km": 25000.0
+                    },
+                    {
+                        "travel_id": "TRV-2026-006",
+                        "employee_id": "EMP-222",
+                        "trip_type": "hotel",
+                        "transaction_date": "20.04.2026",
+                        "nights": -2,
+                        "hotel_country": "Germany"
+                    },
+                    {
+                        "travel_id": "TRV-2026-007",
+                        "employee_id": "EMP-333",
+                        "trip_type": "flight",
+                        "transaction_date": "22.04.2026",
+                        "origin_airport": "FRA",
+                        "destination_airport": "MUC",
+                        "travel_class": "Economy",
+                        "distance_km": 15.0
+                    }
+                ]
+                for idx, item in enumerate(mock_data):
+                    raw_rec = RawRecord.objects.create(
+                        raw_upload=raw_upload,
+                        row_index=idx + 1,
+                        raw_data=item
+                    )
+                    normalize_raw_record(raw_rec)
+                raw_upload.status = 'completed'
+                raw_upload.save()
+                self.stdout.write("Successfully ingested Corporate Travel data manually.")
+        else:
+            self.stdout.write("Ingestion skipped because RawUpload records already exist.")
 
         self.stdout.write(self.style.SUCCESS("Database seeding and data ingestion completed successfully!"))
