@@ -162,12 +162,12 @@ class NormalizedEmissionRecordViewSet(viewsets.ModelViewSet):
                 "error": "Cannot approve record with blocking validation errors. Clean the raw data first."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        reason = request.data.get('reason', '')
+        reason = request.data.get('reason', '').strip()
         
-        # Enforce justification for suspicious validation warnings
-        if record.validation_status == 'suspicious' and not str(reason).strip():
+        # Enforce justification for all approvals
+        if not reason:
             return Response({
-                "error": "A justification override reason is required to approve suspicious records with active warnings."
+                "error": "A justification override reason is required to approve this record."
             }, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user if request.user.is_authenticated else User.objects.get(username='analyst')
@@ -213,9 +213,9 @@ class NormalizedEmissionRecordViewSet(viewsets.ModelViewSet):
         if record.is_locked:
             return Response({"error": "Cannot reject a locked audit record"}, status=status.HTTP_400_BAD_REQUEST)
 
-        reason = request.data.get('reason')
+        reason = request.data.get('reason', '').strip()
         if not reason:
-            return Response({"reason": "A justification is required to reject a record."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "A justification reason is required to reject a record."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user if request.user.is_authenticated else User.objects.get(username='analyst')
 
@@ -264,14 +264,13 @@ class NormalizedEmissionRecordViewSet(viewsets.ModelViewSet):
 
         reason = request.data.get('reason', '').strip()
 
-        # Enforce justification if any suspicious records with warnings are in the batch
-        has_suspicious = records.filter(validation_status='suspicious').exists()
-        if has_suspicious and not reason:
+        # Enforce justification for all bulk approvals
+        if not reason:
             return Response({
-                "error": "A justification override reason is required to bulk approve records containing warnings."
+                "error": "A justification override reason is required to bulk approve records."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        bulk_reason = reason if reason else "Bulk approval"
+        bulk_reason = reason
 
         count = 0
         from django.db import transaction

@@ -147,6 +147,10 @@ export default function App() {
 
   // Handle Approve
   const handleApprove = async (recordId) => {
+    if (!reviewReason.trim()) {
+      alert("Please provide a justification override reason for approval.");
+      return;
+    }
     try {
       const res = await axios.post(`${API_BASE}/records/${recordId}/approve/`, { reason: reviewReason });
       setSelectedRecord(res.data);
@@ -176,8 +180,14 @@ export default function App() {
   // Handle Bulk Approve
   const handleBulkApprove = async () => {
     if (bulkSelectIds.length === 0) return;
+    const reason = prompt("Please enter a justification reason for bulk approval:");
+    if (reason === null) return; // User cancelled
+    if (!reason.trim()) {
+      alert("A justification reason is required for bulk approval.");
+      return;
+    }
     try {
-      const res = await axios.post(`${API_BASE}/records/bulk-approve/`, { record_ids: bulkSelectIds });
+      const res = await axios.post(`${API_BASE}/records/bulk-approve/`, { record_ids: bulkSelectIds, reason: reason });
       alert(`Bulk approved ${res.data.approved_count} records. (Failed records with errors were skipped)`);
       setBulkSelectIds([]);
       loadData();
@@ -695,7 +705,16 @@ export default function App() {
                 <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest block mb-0.5">RECORD DETAILS & AUDIT LOG</span>
                 <h3 className="text-base font-bold text-white flex items-center capitalize">
                   {selectedRecord.activity_type.replace('_', ' ')}
-                  <span className="ml-2 text-xs font-normal text-slate-400">Scope {selectedRecord.scope_category}</span>
+                  <span className="ml-2 text-xs font-normal text-slate-400 mr-3">Scope {selectedRecord.scope_category}</span>
+                  {selectedRecord.review_status === 'approved' && (
+                    <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-green-950/40 text-green-400 border border-green-800/40">LOCKED</span>
+                  )}
+                  {selectedRecord.review_status === 'rejected' && (
+                    <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-red-950/40 text-red-400 border border-red-800/40">REJECTED</span>
+                  )}
+                  {selectedRecord.review_status === 'pending' && (
+                    <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/40 text-blue-400 border border-blue-800/40">PENDING</span>
+                  )}
                 </h3>
               </div>
               <button
@@ -798,13 +817,19 @@ export default function App() {
                     <span className="text-slate-400">Decision Status:</span>
                     <span className="font-bold capitalize text-white">{selectedRecord.review_status}</span>
                   </div>
-                  {selectedRecord.approved_by_username && (
+                  {selectedRecord.last_decision_by && (
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Reviewed By:</span>
-                      <span className="font-bold text-white">{selectedRecord.approved_by_username}</span>
+                      <span className="font-bold text-white">{selectedRecord.last_decision_by}</span>
                     </div>
                   )}
-                  {selectedRecord.approved_at && (
+                  {selectedRecord.last_decision_reason && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 font-medium">Justification:</span>
+                      <span className="font-semibold text-white text-right max-w-[220px] break-words">{selectedRecord.last_decision_reason}</span>
+                    </div>
+                  )}
+                  {selectedRecord.approved_at && selectedRecord.review_status === 'approved' && (
                     <div className="flex items-center justify-between">
                       <span className="text-slate-400">Reviewed At:</span>
                       <span className="font-bold font-mono text-white">{new Date(selectedRecord.approved_at).toLocaleString()}</span>

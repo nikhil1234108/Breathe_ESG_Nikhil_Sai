@@ -52,6 +52,8 @@ class NormalizedEmissionRecordSerializer(serializers.ModelSerializer):
     issues = ValidationIssueSerializer(many=True, read_only=True)
     raw_data = serializers.JSONField(source='raw_record.raw_data', read_only=True)
     approved_by_username = serializers.CharField(source='approved_by.username', read_only=True)
+    last_decision_reason = serializers.SerializerMethodField()
+    last_decision_by = serializers.SerializerMethodField()
     
     class Meta:
         model = NormalizedEmissionRecord
@@ -61,9 +63,18 @@ class NormalizedEmissionRecordSerializer(serializers.ModelSerializer):
             'billing_period_start', 'billing_period_end',
             'raw_quantity', 'raw_unit', 'normalized_quantity', 'normalized_unit',
             'emission_factor', 'calculated_co2e', 'validation_status', 'review_status',
-            'approved_by_username', 'approved_at', 'is_locked', 'issues', 'created_at', 'updated_at'
+            'approved_by_username', 'approved_at', 'is_locked', 'issues', 'created_at', 'updated_at',
+            'last_decision_reason', 'last_decision_by'
         ]
         read_only_fields = ['id', 'company', 'raw_record', 'calculated_co2e', 'validation_status', 'is_locked', 'created_at', 'updated_at']
+
+    def get_last_decision_reason(self, obj):
+        decision = obj.decisions.order_by('-created_at').first()
+        return decision.reason if decision else None
+
+    def get_last_decision_by(self, obj):
+        decision = obj.decisions.order_by('-created_at').first()
+        return decision.decided_by.username if decision and decision.decided_by else None
 
 class ReviewDecisionSerializer(serializers.ModelSerializer):
     decided_by_username = serializers.CharField(source='decided_by.username', read_only=True)
