@@ -117,7 +117,7 @@ class RawUploadViewSet(viewsets.ModelViewSet):
         return Response(RawUploadSerializer(raw_upload).data, status=status.HTTP_200_OK)
 
 class NormalizedEmissionRecordViewSet(viewsets.ModelViewSet):
-    queryset = NormalizedEmissionRecord.objects.all().order_by('-transaction_date', '-created_at')
+    queryset = NormalizedEmissionRecord.objects.all().order_by('-created_at')
     serializer_class = NormalizedEmissionRecordSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['facility_or_plant', 'activity_type', 'raw_unit']
